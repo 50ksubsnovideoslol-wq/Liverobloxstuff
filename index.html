@@ -1,1 +1,985 @@
---nothing here for now
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Live Roblox Monitor</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    color: #f5f7fb;
+    background:
+        radial-gradient(circle at 10% 0%, rgba(79, 100, 255, .16), transparent 32%),
+        radial-gradient(circle at 90% 10%, rgba(0, 220, 150, .08), transparent 30%),
+        #07090e;
+    font-family: Inter, Arial, sans-serif;
+}
+
+.container {
+    width: min(1150px, 92%);
+    margin: auto;
+    padding: 35px 0 60px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+h1 {
+    margin: 0;
+    font-size: 32px;
+}
+
+.subtitle {
+    color: #8991a3;
+    margin-top: 7px;
+}
+
+.live {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.08);
+    font-size: 12px;
+}
+
+.live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #39e58c;
+    box-shadow: 0 0 12px #39e58c;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+
+.card,
+.section {
+    background: rgba(18,21,30,.82);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 18px;
+    backdrop-filter: blur(15px);
+}
+
+.card {
+    padding: 22px;
+}
+
+.label {
+    color: #8991a3;
+    font-size: 13px;
+    margin-bottom: 9px;
+}
+
+.value {
+    font-size: 27px;
+    font-weight: 750;
+}
+
+.green { color: #39e58c; }
+.yellow { color: #ffc857; }
+.red { color: #ff5364; }
+.blue { color: #6ea8ff; }
+
+.section {
+    padding: 23px;
+    margin-top: 20px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.section-header h2 {
+    margin: 0;
+    font-size: 19px;
+}
+
+.small {
+    color: #8991a3;
+    font-size: 12px;
+}
+
+.status {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 18px;
+    border-radius: 14px;
+    background: rgba(255,255,255,.025);
+    border: 1px solid rgba(255,255,255,.06);
+}
+
+.status-icon {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: rgba(57,229,140,.09);
+    color: #39e58c;
+    font-size: 20px;
+}
+
+.status-title {
+    font-weight: 700;
+}
+
+.status-description {
+    color: #8991a3;
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+.report {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 20px;
+    padding: 17px 0;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+}
+
+.report:last-child {
+    border-bottom: 0;
+}
+
+.username {
+    font-weight: 700;
+}
+
+.display-name {
+    color: #8991a3;
+    font-weight: 400;
+}
+
+.user-id {
+    color: #6e7688;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+.reason {
+    color: #c8ceda;
+    margin-top: 9px;
+    font-size: 14px;
+}
+
+.time {
+    color: #6e7688;
+    font-size: 11px;
+    margin-top: 7px;
+}
+
+.badge {
+    height: fit-content;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.reported {
+    background: rgba(255,200,87,.1);
+    color: #ffc857;
+}
+
+.confirmed {
+    background: rgba(57,229,140,.1);
+    color: #39e58c;
+}
+
+.empty {
+    padding: 35px;
+    text-align: center;
+    color: #8991a3;
+}
+
+footer {
+    text-align: center;
+    margin-top: 30px;
+    color: #626a7a;
+    font-size: 11px;
+}
+
+@media (max-width: 850px) {
+    .stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    header {
+        align-items: flex-start;
+        gap: 15px;
+    }
+}
+
+@media (max-width: 520px) {
+    .stats {
+        grid-template-columns: 1fr;
+    }
+
+    header {
+        flex-direction: column;
+    }
+
+    .report {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<header>
+    <div>
+        <h1>🛡️ Live Roblox Monitor</h1>
+        <div class="subtitle">
+            Community report and platform-status monitor
+        </div>
+    </div>
+
+    <div class="live">
+        <span class="live-dot"></span>
+        LIVE
+    </div>
+</header>
+
+
+<!-- STATISTICS -->
+
+<div class="stats">
+
+    <div class="card">
+        <div class="label">Report Activity</div>
+        <div id="activity" class="value green">
+            None
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="label">Users in Rotation</div>
+        <div id="totalReports" class="value blue">
+            0
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="label">Reports Today</div>
+        <div id="todayReports" class="value">
+            0
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="label">Roblox Status</div>
+        <div id="robloxStatus" class="value green">
+            Checking
+        </div>
+    </div>
+
+</div>
+
+
+<!-- ROBLOX STATUS -->
+
+<section class="section">
+
+    <div class="section-header">
+        <h2>Roblox Platform Status</h2>
+
+        <span id="statusUpdated" class="small">
+            Checking...
+        </span>
+    </div>
+
+    <div class="status">
+
+        <div id="statusIcon" class="status-icon">
+            ✓
+        </div>
+
+        <div>
+            <div id="statusTitle" class="status-title">
+                Checking Roblox status...
+            </div>
+
+            <div id="statusDescription"
+                 class="status-description">
+                Contacting the Roblox status service.
+            </div>
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- BANWAVE MONITOR -->
+
+<section class="section">
+
+    <div class="section-header">
+        <h2>Banwave / Report Activity</h2>
+
+        <span id="activityUpdated" class="small">
+            Waiting for reports
+        </span>
+    </div>
+
+    <div class="status">
+
+        <div id="activityIcon" class="status-icon">
+            🛡️
+        </div>
+
+        <div>
+
+            <div id="activityTitle" class="status-title">
+                No unusual report activity
+            </div>
+
+            <div id="activityDescription"
+                 class="status-description">
+
+                This is a community activity indicator.
+                It is not an official Roblox banwave announcement.
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- REPORT ROTATION -->
+
+<section class="section">
+
+    <div class="section-header">
+
+        <h2>Report Rotation</h2>
+
+        <span id="rotationCount" class="small">
+            0 users
+        </span>
+
+    </div>
+
+    <div id="reports">
+
+        <div class="empty">
+            Loading reports...
+        </div>
+
+    </div>
+
+</section>
+
+
+<footer>
+    Community-made monitoring dashboard.
+    Reports are allegations unless independently verified.
+</footer>
+
+</div>
+
+
+<script>
+
+/*
+=========================================================
+CONFIG
+=========================================================
+
+Your repository:
+
+50ksubsnovideoslol-wq/Liverobloxstuff
+
+The report system will eventually provide the JSON data.
+
+For now this points to a placeholder.
+
+Once the report repository is ready, change this to
+its RAW reports.json address.
+*/
+
+const REPORT_DATA_URL =
+    "https://raw.githubusercontent.com/50ksubsnovideoslol-wq/Report-sending/main/reports.json";
+
+
+/*
+Roblox official status service.
+*/
+
+const ROBLOX_STATUS_URL =
+    "https://status.roblox.com/api/v2/summary.json";
+
+
+/*
+=========================================================
+ROBLOX USER LOOKUP
+=========================================================
+*/
+
+async function getRobloxUser(userId) {
+
+    try {
+
+        const response = await fetch(
+            `https://users.roblox.com/v1/users/${encodeURIComponent(userId)}`
+        );
+
+        if (!response.ok) {
+            throw new Error("User lookup failed");
+        }
+
+        return await response.json();
+
+    } catch {
+
+        return {
+            name: "Unknown User",
+            displayName: "Unknown"
+        };
+
+    }
+
+}
+
+
+/*
+=========================================================
+LOAD REPORT DATABASE
+=========================================================
+*/
+
+async function loadReports() {
+
+    try {
+
+        const response =
+            await fetch(
+                REPORT_DATA_URL + "?t=" + Date.now()
+            );
+
+        if (!response.ok) {
+            throw new Error("Report database unavailable");
+        }
+
+        const reports =
+            await response.json();
+
+        if (!Array.isArray(reports)) {
+            throw new Error("Invalid report format");
+        }
+
+        await displayReports(reports);
+
+    } catch (error) {
+
+        console.error(error);
+
+        document.getElementById("reports").innerHTML = `
+            <div class="empty">
+                Report database is not available yet.
+                <br><br>
+                Make sure <b>reports.json</b> exists in the
+                Report-sending repository.
+            </div>
+        `;
+
+        updateStatistics([]);
+
+    }
+
+}
+
+
+/*
+=========================================================
+DISPLAY REPORTS
+=========================================================
+*/
+
+async function displayReports(reports) {
+
+    const container =
+        document.getElementById("reports");
+
+    if (reports.length === 0) {
+
+        container.innerHTML = `
+            <div class="empty">
+                No users are currently in the report rotation.
+            </div>
+        `;
+
+        updateStatistics([]);
+
+        return;
+    }
+
+
+    /*
+    Resolve every Roblox User ID into current account data.
+    */
+
+    const enriched =
+        await Promise.all(
+
+            reports.map(async report => {
+
+                const user =
+                    await getRobloxUser(report.userId);
+
+                return {
+                    ...report,
+                    username: user.name,
+                    displayName: user.displayName
+                };
+
+            })
+
+        );
+
+
+    container.innerHTML = "";
+
+
+    enriched.forEach(report => {
+
+        const item =
+            document.createElement("div");
+
+        item.className = "report";
+
+
+        const status =
+            report.status === "confirmed"
+                ? "confirmed"
+                : "reported";
+
+
+        item.innerHTML = `
+
+            <div>
+
+                <div class="username">
+
+                    ${escapeHTML(report.username)}
+
+                    <span class="display-name">
+                        (@${escapeHTML(report.displayName)})
+                    </span>
+
+                </div>
+
+                <div class="user-id">
+                    User ID:
+                    ${escapeHTML(String(report.userId))}
+                </div>
+
+                <div class="reason">
+                    ${escapeHTML(
+                        report.reason ||
+                        "No reason supplied."
+                    )}
+                </div>
+
+                <div class="time">
+                    ${formatDate(report.timestamp)}
+                </div>
+
+            </div>
+
+            <div class="badge ${status}">
+                ${status === "confirmed"
+                    ? "Confirmed"
+                    : "Reported"}
+            </div>
+        `;
+
+
+        container.appendChild(item);
+
+    });
+
+
+    updateStatistics(enriched);
+
+}
+
+
+/*
+=========================================================
+STATISTICS
+=========================================================
+*/
+
+function updateStatistics(reports) {
+
+    const total =
+        reports.length;
+
+
+    document.getElementById("totalReports")
+        .textContent = total;
+
+
+    document.getElementById("rotationCount")
+        .textContent =
+            `${total} ${total === 1 ? "user" : "users"}`;
+
+
+    const today =
+        new Date().toISOString().slice(0, 10);
+
+
+    const todayCount =
+        reports.filter(report => {
+
+            if (!report.timestamp) {
+                return false;
+            }
+
+            return report.timestamp.startsWith(today);
+
+        }).length;
+
+
+    document.getElementById("todayReports")
+        .textContent = todayCount;
+
+
+    /*
+    Community report-activity indicator.
+
+    0-4  = normal
+    5-19 = increased
+    20+  = high
+
+    This is NOT an official Roblox banwave detector.
+    */
+
+    const activity =
+        document.getElementById("activity");
+
+    const title =
+        document.getElementById("activityTitle");
+
+    const description =
+        document.getElementById("activityDescription");
+
+
+    if (todayCount >= 20) {
+
+        activity.textContent =
+            "High";
+
+        activity.className =
+            "value yellow";
+
+        title.textContent =
+            "High report activity";
+
+        description.textContent =
+            "A large number of community reports have been submitted today.";
+
+    }
+
+    else if (todayCount >= 5) {
+
+        activity.textContent =
+            "Increased";
+
+        activity.className =
+            "value blue";
+
+        title.textContent =
+            "Increased report activity";
+
+        description.textContent =
+            "More reports than the normal activity threshold have been recorded.";
+
+    }
+
+    else {
+
+        activity.textContent =
+            "Normal";
+
+        activity.className =
+            "value green";
+
+        title.textContent =
+            "No unusual report activity";
+
+        description.textContent =
+            "No significant increase in community reports has been detected.";
+
+    }
+
+
+    document.getElementById("activityUpdated")
+        .textContent =
+            "Updated " +
+            new Date().toLocaleTimeString();
+
+}
+
+
+/*
+=========================================================
+ROBLOX STATUS
+=========================================================
+*/
+
+async function checkRobloxStatus() {
+
+    try {
+
+        const response =
+            await fetch(
+                ROBLOX_STATUS_URL +
+                "?t=" +
+                Date.now()
+            );
+
+
+        if (!response.ok) {
+            throw new Error("Status request failed");
+        }
+
+
+        const data =
+            await response.json();
+
+
+        const indicator =
+            data.status?.indicator ||
+            "unknown";
+
+
+        const description =
+            data.status?.description ||
+            "Status unavailable";
+
+
+        const status =
+            document.getElementById("robloxStatus");
+
+        const title =
+            document.getElementById("statusTitle");
+
+        const desc =
+            document.getElementById("statusDescription");
+
+        const icon =
+            document.getElementById("statusIcon");
+
+
+        if (indicator === "none") {
+
+            status.textContent =
+                "Online";
+
+            status.className =
+                "value green";
+
+            title.textContent =
+                "All systems operational";
+
+            desc.textContent =
+                description;
+
+            icon.textContent =
+                "✓";
+
+        }
+
+        else if (
+            indicator === "minor" ||
+            indicator === "major"
+        ) {
+
+            status.textContent =
+                "Issues";
+
+            status.className =
+                "value yellow";
+
+            title.textContent =
+                "Roblox is reporting an issue";
+
+            desc.textContent =
+                description;
+
+            icon.textContent =
+                "!";
+
+        }
+
+        else if (indicator === "critical") {
+
+            status.textContent =
+                "Outage";
+
+            status.className =
+                "value red";
+
+            title.textContent =
+                "Major Roblox outage reported";
+
+            desc.textContent =
+                description;
+
+            icon.textContent =
+                "×";
+
+        }
+
+        else {
+
+            status.textContent =
+                "Unknown";
+
+            status.className =
+                "value yellow";
+
+            title.textContent =
+                "Unable to determine Roblox status";
+
+            desc.textContent =
+                description;
+
+        }
+
+
+        document.getElementById("statusUpdated")
+            .textContent =
+                "Updated " +
+                new Date().toLocaleTimeString();
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        document.getElementById("robloxStatus")
+            .textContent =
+            "Unknown";
+
+        document.getElementById("robloxStatus")
+            .className =
+            "value yellow";
+
+        document.getElementById("statusTitle")
+            .textContent =
+            "Status unavailable";
+
+        document.getElementById("statusDescription")
+            .textContent =
+            "Unable to reach the Roblox status service.";
+
+    }
+
+}
+
+
+/*
+=========================================================
+SECURITY / DISPLAY HELPERS
+=========================================================
+*/
+
+function escapeHTML(value) {
+
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+
+}
+
+
+function formatDate(value) {
+
+    if (!value) {
+        return "Time unavailable";
+    }
+
+    const date =
+        new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return "Time unavailable";
+    }
+
+    return date.toLocaleString();
+
+}
+
+
+/*
+=========================================================
+START
+=========================================================
+*/
+
+async function refresh() {
+
+    await Promise.all([
+        loadReports(),
+        checkRobloxStatus()
+    ]);
+
+}
+
+
+/*
+Initial load.
+*/
+
+refresh();
+
+
+/*
+Automatically update every minute.
+*/
+
+setInterval(refresh, 60000);
+
+</script>
+
+</body>
+</html>
+```
